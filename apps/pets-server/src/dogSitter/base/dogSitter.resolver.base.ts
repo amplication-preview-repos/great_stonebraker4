@@ -13,6 +13,12 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
+import * as nestAccessControl from "nest-access-control";
+import * as gqlACGuard from "../../auth/gqlAC.guard";
+import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
+import * as common from "@nestjs/common";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { DogSitter } from "./DogSitter";
 import { DogSitterCountArgs } from "./DogSitterCountArgs";
 import { DogSitterFindManyArgs } from "./DogSitterFindManyArgs";
@@ -25,10 +31,20 @@ import { Review } from "../../review/base/Review";
 import { BookingFindManyArgs } from "../../booking/base/BookingFindManyArgs";
 import { Booking } from "../../booking/base/Booking";
 import { DogSitterService } from "../dogSitter.service";
+@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => DogSitter)
 export class DogSitterResolverBase {
-  constructor(protected readonly service: DogSitterService) {}
+  constructor(
+    protected readonly service: DogSitterService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
 
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "read",
+    possession: "any",
+  })
   async _dogSittersMeta(
     @graphql.Args() args: DogSitterCountArgs
   ): Promise<MetaQueryPayload> {
@@ -38,14 +54,26 @@ export class DogSitterResolverBase {
     };
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [DogSitter])
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "read",
+    possession: "any",
+  })
   async dogSitters(
     @graphql.Args() args: DogSitterFindManyArgs
   ): Promise<DogSitter[]> {
     return this.service.dogSitters(args);
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => DogSitter, { nullable: true })
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "read",
+    possession: "own",
+  })
   async dogSitter(
     @graphql.Args() args: DogSitterFindUniqueArgs
   ): Promise<DogSitter | null> {
@@ -56,7 +84,13 @@ export class DogSitterResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => DogSitter)
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "create",
+    possession: "any",
+  })
   async createDogSitter(
     @graphql.Args() args: CreateDogSitterArgs
   ): Promise<DogSitter> {
@@ -66,7 +100,13 @@ export class DogSitterResolverBase {
     });
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => DogSitter)
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "update",
+    possession: "any",
+  })
   async updateDogSitter(
     @graphql.Args() args: UpdateDogSitterArgs
   ): Promise<DogSitter | null> {
@@ -86,6 +126,11 @@ export class DogSitterResolverBase {
   }
 
   @graphql.Mutation(() => DogSitter)
+  @nestAccessControl.UseRoles({
+    resource: "DogSitter",
+    action: "delete",
+    possession: "any",
+  })
   async deleteDogSitter(
     @graphql.Args() args: DeleteDogSitterArgs
   ): Promise<DogSitter | null> {
@@ -101,7 +146,13 @@ export class DogSitterResolverBase {
     }
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.ResolveField(() => [Review], { name: "reviews" })
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "read",
+    possession: "any",
+  })
   async findReviews(
     @graphql.Parent() parent: DogSitter,
     @graphql.Args() args: ReviewFindManyArgs
@@ -115,7 +166,13 @@ export class DogSitterResolverBase {
     return results;
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.ResolveField(() => [Booking], { name: "bookings" })
+  @nestAccessControl.UseRoles({
+    resource: "Booking",
+    action: "read",
+    possession: "any",
+  })
   async findBookings(
     @graphql.Parent() parent: DogSitter,
     @graphql.Args() args: BookingFindManyArgs

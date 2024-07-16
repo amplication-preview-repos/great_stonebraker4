@@ -13,6 +13,12 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
+import * as nestAccessControl from "nest-access-control";
+import * as gqlACGuard from "../../auth/gqlAC.guard";
+import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
+import * as common from "@nestjs/common";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Dog } from "./Dog";
 import { DogCountArgs } from "./DogCountArgs";
 import { DogFindManyArgs } from "./DogFindManyArgs";
@@ -24,10 +30,20 @@ import { BookingFindManyArgs } from "../../booking/base/BookingFindManyArgs";
 import { Booking } from "../../booking/base/Booking";
 import { Client } from "../../client/base/Client";
 import { DogService } from "../dog.service";
+@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Dog)
 export class DogResolverBase {
-  constructor(protected readonly service: DogService) {}
+  constructor(
+    protected readonly service: DogService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
 
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "any",
+  })
   async _dogsMeta(
     @graphql.Args() args: DogCountArgs
   ): Promise<MetaQueryPayload> {
@@ -37,12 +53,24 @@ export class DogResolverBase {
     };
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [Dog])
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "any",
+  })
   async dogs(@graphql.Args() args: DogFindManyArgs): Promise<Dog[]> {
     return this.service.dogs(args);
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => Dog, { nullable: true })
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "own",
+  })
   async dog(@graphql.Args() args: DogFindUniqueArgs): Promise<Dog | null> {
     const result = await this.service.dog(args);
     if (result === null) {
@@ -51,7 +79,13 @@ export class DogResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Dog)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "create",
+    possession: "any",
+  })
   async createDog(@graphql.Args() args: CreateDogArgs): Promise<Dog> {
     return await this.service.createDog({
       ...args,
@@ -67,7 +101,13 @@ export class DogResolverBase {
     });
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Dog)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "update",
+    possession: "any",
+  })
   async updateDog(@graphql.Args() args: UpdateDogArgs): Promise<Dog | null> {
     try {
       return await this.service.updateDog({
@@ -93,6 +133,11 @@ export class DogResolverBase {
   }
 
   @graphql.Mutation(() => Dog)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "delete",
+    possession: "any",
+  })
   async deleteDog(@graphql.Args() args: DeleteDogArgs): Promise<Dog | null> {
     try {
       return await this.service.deleteDog(args);
@@ -106,7 +151,13 @@ export class DogResolverBase {
     }
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.ResolveField(() => [Booking], { name: "bookings" })
+  @nestAccessControl.UseRoles({
+    resource: "Booking",
+    action: "read",
+    possession: "any",
+  })
   async findBookings(
     @graphql.Parent() parent: Dog,
     @graphql.Args() args: BookingFindManyArgs
@@ -120,9 +171,15 @@ export class DogResolverBase {
     return results;
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.ResolveField(() => Client, {
     nullable: true,
     name: "client",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "read",
+    possession: "any",
   })
   async getClient(@graphql.Parent() parent: Dog): Promise<Client | null> {
     const result = await this.service.getClient(parent.id);

@@ -16,7 +16,11 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { DogService } from "../dog.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { DogCreateInput } from "./DogCreateInput";
 import { Dog } from "./Dog";
 import { DogFindManyArgs } from "./DogFindManyArgs";
@@ -26,10 +30,27 @@ import { BookingFindManyArgs } from "../../booking/base/BookingFindManyArgs";
 import { Booking } from "../../booking/base/Booking";
 import { BookingWhereUniqueInput } from "../../booking/base/BookingWhereUniqueInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class DogControllerBase {
-  constructor(protected readonly service: DogService) {}
+  constructor(
+    protected readonly service: DogService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Dog })
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: DogCreateInput,
+  })
   async createDog(@common.Body() data: DogCreateInput): Promise<Dog> {
     return await this.service.createDog({
       data: {
@@ -58,9 +79,18 @@ export class DogControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Dog] })
   @ApiNestedQuery(DogFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async dogs(@common.Req() request: Request): Promise<Dog[]> {
     const args = plainToClass(DogFindManyArgs, request.query);
     return this.service.dogs({
@@ -82,9 +112,18 @@ export class DogControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Dog })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async dog(@common.Param() params: DogWhereUniqueInput): Promise<Dog | null> {
     const result = await this.service.dog({
       where: params,
@@ -111,9 +150,21 @@ export class DogControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Dog })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: DogUpdateInput,
+  })
   async updateDog(
     @common.Param() params: DogWhereUniqueInput,
     @common.Body() data: DogUpdateInput
@@ -158,6 +209,14 @@ export class DogControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Dog })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteDog(
     @common.Param() params: DogWhereUniqueInput
   ): Promise<Dog | null> {
@@ -189,8 +248,14 @@ export class DogControllerBase {
     }
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id/bookings")
   @ApiNestedQuery(BookingFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Booking",
+    action: "read",
+    possession: "any",
+  })
   async findBookings(
     @common.Req() request: Request,
     @common.Param() params: DogWhereUniqueInput
@@ -233,6 +298,11 @@ export class DogControllerBase {
   }
 
   @common.Post("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "update",
+    possession: "any",
+  })
   async connectBookings(
     @common.Param() params: DogWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]
@@ -250,6 +320,11 @@ export class DogControllerBase {
   }
 
   @common.Patch("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "update",
+    possession: "any",
+  })
   async updateBookings(
     @common.Param() params: DogWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]
@@ -267,6 +342,11 @@ export class DogControllerBase {
   }
 
   @common.Delete("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "update",
+    possession: "any",
+  })
   async disconnectBookings(
     @common.Param() params: DogWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]

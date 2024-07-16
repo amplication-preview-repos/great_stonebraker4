@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+                 package review;
+service ReviewService {
+ rpc createReview (ReviewCreateInput) returns (Review) {}
+rpc reviews (findManyParams) returns (stream Review) {}
+rpc review (ReviewWhereUniqueInput) returns (Review) {}
+rpc updateReview (ReviewUpdateInput) returns (Review) {}
+rpc deleteReview (ReviewWhereUniqueInput) returns (Review) {} 
+ }
+message ReviewCreateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message Review {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewUpdateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message findManyParams {
+
+};

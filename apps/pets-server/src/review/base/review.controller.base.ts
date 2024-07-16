@@ -16,17 +16,38 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { ReviewService } from "../review.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { ReviewCreateInput } from "./ReviewCreateInput";
 import { Review } from "./Review";
 import { ReviewFindManyArgs } from "./ReviewFindManyArgs";
 import { ReviewWhereUniqueInput } from "./ReviewWhereUniqueInput";
 import { ReviewUpdateInput } from "./ReviewUpdateInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class ReviewControllerBase {
-  constructor(protected readonly service: ReviewService) {}
+  constructor(
+    protected readonly service: ReviewService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Review })
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: ReviewCreateInput,
+  })
   async createReview(@common.Body() data: ReviewCreateInput): Promise<Review> {
     return await this.service.createReview({
       data: {
@@ -66,9 +87,18 @@ export class ReviewControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Review] })
   @ApiNestedQuery(ReviewFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async reviews(@common.Req() request: Request): Promise<Review[]> {
     const args = plainToClass(ReviewFindManyArgs, request.query);
     return this.service.reviews({
@@ -95,9 +125,18 @@ export class ReviewControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Review })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async review(
     @common.Param() params: ReviewWhereUniqueInput
   ): Promise<Review | null> {
@@ -131,9 +170,21 @@ export class ReviewControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Review })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: ReviewUpdateInput,
+  })
   async updateReview(
     @common.Param() params: ReviewWhereUniqueInput,
     @common.Body() data: ReviewUpdateInput
@@ -189,6 +240,14 @@ export class ReviewControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Review })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteReview(
     @common.Param() params: ReviewWhereUniqueInput
   ): Promise<Review | null> {

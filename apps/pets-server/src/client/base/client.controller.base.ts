@@ -16,7 +16,11 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { ClientService } from "../client.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { ClientCreateInput } from "./ClientCreateInput";
 import { Client } from "./Client";
 import { ClientFindManyArgs } from "./ClientFindManyArgs";
@@ -32,10 +36,27 @@ import { DogFindManyArgs } from "../../dog/base/DogFindManyArgs";
 import { Dog } from "../../dog/base/Dog";
 import { DogWhereUniqueInput } from "../../dog/base/DogWhereUniqueInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class ClientControllerBase {
-  constructor(protected readonly service: ClientService) {}
+  constructor(
+    protected readonly service: ClientService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Client })
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: ClientCreateInput,
+  })
   async createClient(@common.Body() data: ClientCreateInput): Promise<Client> {
     return await this.service.createClient({
       data: data,
@@ -50,9 +71,18 @@ export class ClientControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Client] })
   @ApiNestedQuery(ClientFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async clients(@common.Req() request: Request): Promise<Client[]> {
     const args = plainToClass(ClientFindManyArgs, request.query);
     return this.service.clients({
@@ -68,9 +98,18 @@ export class ClientControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Client })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async client(
     @common.Param() params: ClientWhereUniqueInput
   ): Promise<Client | null> {
@@ -93,9 +132,21 @@ export class ClientControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Client })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: ClientUpdateInput,
+  })
   async updateClient(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() data: ClientUpdateInput
@@ -126,6 +177,14 @@ export class ClientControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Client })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteClient(
     @common.Param() params: ClientWhereUniqueInput
   ): Promise<Client | null> {
@@ -151,8 +210,14 @@ export class ClientControllerBase {
     }
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id/bookings")
   @ApiNestedQuery(BookingFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Booking",
+    action: "read",
+    possession: "any",
+  })
   async findBookings(
     @common.Req() request: Request,
     @common.Param() params: ClientWhereUniqueInput
@@ -195,6 +260,11 @@ export class ClientControllerBase {
   }
 
   @common.Post("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async connectBookings(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]
@@ -212,6 +282,11 @@ export class ClientControllerBase {
   }
 
   @common.Patch("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async updateBookings(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]
@@ -229,6 +304,11 @@ export class ClientControllerBase {
   }
 
   @common.Delete("/:id/bookings")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async disconnectBookings(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: BookingWhereUniqueInput[]
@@ -245,8 +325,14 @@ export class ClientControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id/reviews")
   @ApiNestedQuery(ReviewFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Review",
+    action: "read",
+    possession: "any",
+  })
   async findReviews(
     @common.Req() request: Request,
     @common.Param() params: ClientWhereUniqueInput
@@ -283,6 +369,11 @@ export class ClientControllerBase {
   }
 
   @common.Post("/:id/reviews")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async connectReviews(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: ReviewWhereUniqueInput[]
@@ -300,6 +391,11 @@ export class ClientControllerBase {
   }
 
   @common.Patch("/:id/reviews")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async updateReviews(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: ReviewWhereUniqueInput[]
@@ -317,6 +413,11 @@ export class ClientControllerBase {
   }
 
   @common.Delete("/:id/reviews")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async disconnectReviews(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: ReviewWhereUniqueInput[]
@@ -333,8 +434,14 @@ export class ClientControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id/dogs")
   @ApiNestedQuery(DogFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Dog",
+    action: "read",
+    possession: "any",
+  })
   async findDogs(
     @common.Req() request: Request,
     @common.Param() params: ClientWhereUniqueInput
@@ -366,6 +473,11 @@ export class ClientControllerBase {
   }
 
   @common.Post("/:id/dogs")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async connectDogs(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: DogWhereUniqueInput[]
@@ -383,6 +495,11 @@ export class ClientControllerBase {
   }
 
   @common.Patch("/:id/dogs")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async updateDogs(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: DogWhereUniqueInput[]
@@ -400,6 +517,11 @@ export class ClientControllerBase {
   }
 
   @common.Delete("/:id/dogs")
+  @nestAccessControl.UseRoles({
+    resource: "Client",
+    action: "update",
+    possession: "any",
+  })
   async disconnectDogs(
     @common.Param() params: ClientWhereUniqueInput,
     @common.Body() body: DogWhereUniqueInput[]
