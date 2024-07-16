@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+                 package dogSitter;
+service DogSitterService {
+ rpc createDogSitter (DogSitterCreateInput) returns (DogSitter) {}
+rpc dogSitters (findManyParams) returns (stream DogSitter) {}
+rpc dogSitter (DogSitterWhereUniqueInput) returns (DogSitter) {}
+rpc updateDogSitter (DogSitterUpdateInput) returns (DogSitter) {}
+rpc deleteDogSitter (DogSitterWhereUniqueInput) returns (DogSitter) {}
+rpc findManyDogSitter (DogSitterWhereUniqueInput) returns (stream Review) {}
+rpc updateDogSitter (ReviewParams) returns (stream Review) {}
+rpc connectDogSitter (ReviewParams) returns (Review) {}
+rpc disconnectDogSitter (ReviewParams) returns (Review) {}
+rpc findManyDogSitter (DogSitterWhereUniqueInput) returns (stream Booking) {}
+rpc updateDogSitter (BookingParams) returns (stream Booking) {}
+rpc connectDogSitter (BookingParams) returns (Booking) {}
+rpc disconnectDogSitter (BookingParams) returns (Booking) {} 
+ }
+message DogSitterCreateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+int32 rating = 7;
+repeated Review reviews = 8;
+repeated Booking bookings = 9;
+};
+message DogSitter {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+int32 rating = 7;
+repeated Review reviews = 8;
+repeated Booking bookings = 9;
+};
+message DogSitterWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+int32 rating = 7;
+repeated Review reviews = 8;
+repeated Booking bookings = 9;
+};
+message DogSitterUpdateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+int32 rating = 7;
+repeated Review reviews = 8;
+repeated Booking bookings = 9;
+};
+message findManyParams {
+
+};
+message Review {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewParams {
+DogSitterWhereUniqueInput dogSitterWhereUniqueInput = 1;
+ReviewWhereUniqueInput reviewWhereUniqueInput = 2;
+};
+message Booking {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingParams {
+DogSitterWhereUniqueInput dogSitterWhereUniqueInput = 1;
+BookingWhereUniqueInput bookingWhereUniqueInput = 2;
+};

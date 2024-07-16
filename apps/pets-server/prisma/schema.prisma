@@ -1,0 +1,82 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Client {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  name        String?
+  email       String?
+  phoneNumber String?
+  bookings    Booking[]
+  reviews     Review[]
+  dogs        Dog[]
+}
+
+model Dog {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String?
+  breed     String?
+  age       Int?
+  client    Client?   @relation(fields: [clientId], references: [id])
+  clientId  String?
+  bookings  Booking[]
+}
+
+model Booking {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  startTime   DateTime?
+  endTime     DateTime?
+  client      Client?    @relation(fields: [clientId], references: [id])
+  clientId    String?
+  dog         Dog?       @relation(fields: [dogId], references: [id])
+  dogId       String?
+  dogSitter   DogSitter? @relation(fields: [dogSitterId], references: [id])
+  dogSitterId String?
+}
+
+model Review {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  rating      Float?
+  comment     String?
+  client      Client?    @relation(fields: [clientId], references: [id])
+  clientId    String?
+  dogSitter   DogSitter? @relation(fields: [dogSitterId], references: [id])
+  dogSitterId String?
+}
+
+model DogSitter {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  name        String?
+  email       String?
+  phoneNumber String?
+  rating      Float?
+  reviews     Review[]
+  bookings    Booking[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  firstName String?
+  lastName  String?
+  username  String   @unique
+  email     String?  @unique
+  password  String
+  roles     Json
+}

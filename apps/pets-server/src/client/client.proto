@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+                 package client;
+service ClientService {
+ rpc createClient (ClientCreateInput) returns (Client) {}
+rpc clients (findManyParams) returns (stream Client) {}
+rpc client (ClientWhereUniqueInput) returns (Client) {}
+rpc updateClient (ClientUpdateInput) returns (Client) {}
+rpc deleteClient (ClientWhereUniqueInput) returns (Client) {}
+rpc findManyClient (ClientWhereUniqueInput) returns (stream Booking) {}
+rpc updateClient (BookingParams) returns (stream Booking) {}
+rpc connectClient (BookingParams) returns (Booking) {}
+rpc disconnectClient (BookingParams) returns (Booking) {}
+rpc findManyClient (ClientWhereUniqueInput) returns (stream Review) {}
+rpc updateClient (ReviewParams) returns (stream Review) {}
+rpc connectClient (ReviewParams) returns (Review) {}
+rpc disconnectClient (ReviewParams) returns (Review) {}
+rpc findManyClient (ClientWhereUniqueInput) returns (stream Dog) {}
+rpc updateClient (DogParams) returns (stream Dog) {}
+rpc connectClient (DogParams) returns (Dog) {}
+rpc disconnectClient (DogParams) returns (Dog) {} 
+ }
+message ClientCreateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+repeated Booking bookings = 7;
+repeated Review reviews = 8;
+repeated Dog dogs = 9;
+};
+message Client {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+repeated Booking bookings = 7;
+repeated Review reviews = 8;
+repeated Dog dogs = 9;
+};
+message ClientWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+repeated Booking bookings = 7;
+repeated Review reviews = 8;
+repeated Dog dogs = 9;
+};
+message ClientUpdateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string email = 5;
+string phoneNumber = 6;
+repeated Booking bookings = 7;
+repeated Review reviews = 8;
+repeated Dog dogs = 9;
+};
+message findManyParams {
+
+};
+message Booking {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingParams {
+ClientWhereUniqueInput clientWhereUniqueInput = 1;
+BookingWhereUniqueInput bookingWhereUniqueInput = 2;
+};
+message Review {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+int32 rating = 4;
+string comment = 5;
+};
+message ReviewParams {
+ClientWhereUniqueInput clientWhereUniqueInput = 1;
+ReviewWhereUniqueInput reviewWhereUniqueInput = 2;
+};
+message Dog {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+};
+message DogWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+};
+message DogParams {
+ClientWhereUniqueInput clientWhereUniqueInput = 1;
+DogWhereUniqueInput dogWhereUniqueInput = 2;
+};

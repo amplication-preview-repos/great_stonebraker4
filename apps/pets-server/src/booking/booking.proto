@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+                 package booking;
+service BookingService {
+ rpc createBooking (BookingCreateInput) returns (Booking) {}
+rpc bookings (findManyParams) returns (stream Booking) {}
+rpc booking (BookingWhereUniqueInput) returns (Booking) {}
+rpc updateBooking (BookingUpdateInput) returns (Booking) {}
+rpc deleteBooking (BookingWhereUniqueInput) returns (Booking) {} 
+ }
+message BookingCreateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message Booking {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingUpdateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message findManyParams {
+
+};

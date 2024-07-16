@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+                 package dog;
+service DogService {
+ rpc createDog (DogCreateInput) returns (Dog) {}
+rpc dogs (findManyParams) returns (stream Dog) {}
+rpc dog (DogWhereUniqueInput) returns (Dog) {}
+rpc updateDog (DogUpdateInput) returns (Dog) {}
+rpc deleteDog (DogWhereUniqueInput) returns (Dog) {}
+rpc findManyDog (DogWhereUniqueInput) returns (stream Booking) {}
+rpc updateDog (BookingParams) returns (stream Booking) {}
+rpc connectDog (BookingParams) returns (Booking) {}
+rpc disconnectDog (BookingParams) returns (Booking) {} 
+ }
+message DogCreateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+repeated Booking bookings = 7;
+};
+message Dog {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+repeated Booking bookings = 7;
+};
+message DogWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+repeated Booking bookings = 7;
+};
+message DogUpdateInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string name = 4;
+string breed = 5;
+int32 age = 6;
+repeated Booking bookings = 7;
+};
+message findManyParams {
+
+};
+message Booking {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingWhereUniqueInput {
+string id = 1;
+string createdAt = 2;
+string updatedAt = 3;
+string startTime = 4;
+string endTime = 5;
+};
+message BookingParams {
+DogWhereUniqueInput dogWhereUniqueInput = 1;
+BookingWhereUniqueInput bookingWhereUniqueInput = 2;
+};
